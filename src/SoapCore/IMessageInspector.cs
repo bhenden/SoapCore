@@ -3,8 +3,8 @@ using System.ServiceModel.Channels;
 namespace SoapCore
 {
 	public interface IMessageInspector
-    {
-		void AfterReceiveRequest(Message message);
-		void BeforeSendReply(Message reply);
+	{
+		object AfterReceiveRequest(ref Message message);
+		void BeforeSendReply(ref Message reply, object correlationState);
 	}
 }

@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace SoapCore.Tests
+namespace SoapCore.Tests.Model
 {
 	[DataContract]
 	public class ComplexModelInput
@@ -13,5 +12,11 @@ namespace SoapCore.Tests
 
 		[DataMember]
 		public int IntProperty { get; set; }
+
+		[DataMember]
+		public List<string> ListProperty { get; set; }
+
+		[DataMember]
+		public DateTimeOffset DateTimeOffsetProperty { get; set; }
 	}
 }

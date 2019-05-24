@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SoapCore.Tests.Model;
 
 namespace SoapCore.Tests.MessageInspector
 {
@@ -17,12 +18,12 @@ namespace SoapCore.Tests.MessageInspector
 			{
 				var host = new WebHostBuilder()
 					.UseKestrel()
-					.UseUrls("http://*:5051")
+					.UseUrls("http://localhost:5051")
 					.UseStartup<Startup>()
 					.Build();
 
 				host.Run();
-			});
+			}).Wait(1000);
 		}
 
 		[TestInitialize]
@@ -34,7 +35,7 @@ namespace SoapCore.Tests.MessageInspector
 		public ITestService CreateClient(Dictionary<string, object> headers = null)
 		{
 			var binding = new BasicHttpBinding();
-			var endpoint = new EndpointAddress(new Uri(string.Format("http://{0}:5051/Service.svc", Environment.MachineName)));
+			var endpoint = new EndpointAddress(new Uri(string.Format("http://{0}:5051/Service.svc", "localhost")));
 			var channelFactory = new ChannelFactory<ITestService>(binding, endpoint);
 			channelFactory.Endpoint.EndpointBehaviors.Add(new CustomHeadersEndpointBehavior(headers));
 			var serviceClient = channelFactory.CreateChannel();
@@ -82,9 +83,16 @@ namespace SoapCore.Tests.MessageInspector
 		[TestMethod]
 		public void ComplexSoapHeader()
 		{
-			var client = CreateClient(new Dictionary<string, object>() {
+			var client = CreateClient(new Dictionary<string, object>()
+			{
 				{
-					"complex", new ComplexModelInput() { StringProperty = "hello, world", IntProperty = 1000 }
+					"complex", new ComplexModelInput()
+					{
+						StringProperty = "hello, world",
+						IntProperty = 1000,
+						ListProperty = new List<string> { "test", "list", "of", "strings" },
+						DateTimeOffsetProperty = new DateTimeOffset(2018, 12, 31, 13, 59, 59, TimeSpan.FromHours(1))
+					}
 				}
 			});
 
@@ -93,6 +101,7 @@ namespace SoapCore.Tests.MessageInspector
 			var complex = msg.Headers.GetHeader<ComplexModelInput>(msg.Headers.FindHeader("complex", "SoapCore"));
 			Assert.AreEqual(complex.StringProperty, "hello, world");
 			Assert.AreEqual(complex.IntProperty, 1000);
+			CollectionAssert.AreEqual(complex.ListProperty, new List<string> { "test", "list", "of", "strings" });
 		}
 	}
 }
